@@ -139,6 +139,7 @@ impl Library {
         // We are going to get both the ancestors and grandparents for each section in one go
         let mut ancestors: HashMap<PathBuf, Vec<_>> = HashMap::new();
         let mut subsections: HashMap<PathBuf, Vec<_>> = HashMap::new();
+        let mut includes: HashMap<DefaultKey, Vec<_>> = HashMap::new();
 
         for (key, section) in self.sections.iter_mut() {
             // Make sure the pages of a section are empty since we can call that many times on `serve`
@@ -152,6 +153,8 @@ impl Library {
                     .or_insert_with(Vec::new)
                     .push(section.file.path.clone());
             }
+
+            includes.insert(key, section.meta.include.clone());
 
             // populate translations if necessary
             if self.is_multilingual {
@@ -241,6 +244,21 @@ impl Library {
                     })
                     .or_insert(set![key]);
             };
+        }
+
+        for (key, inc_paths) in includes.into_iter() {
+            let mut added_pages = Vec::new();
+            for path in inc_paths {
+                if let Some(inc_section_key) =
+                    self.paths_to_sections.get(&root_path.join(&path).join("_index.md"))
+                {
+                    let inc_section = self.sections.get_mut(*inc_section_key).unwrap();
+                    added_pages.extend_from_slice(&inc_section.pages);
+                    inc_section.includers.push(key.clone());
+                }
+            }
+            let section = self.sections.get_mut(key).unwrap();
+            section.pages.extend_from_slice(&added_pages);
         }
 
         self.sort_sections_pages();

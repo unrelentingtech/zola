@@ -70,6 +70,8 @@ pub struct SectionFrontMatter {
     /// Whether to generate a feed for the current section
     #[serde(skip_serializing)]
     pub generate_feed: bool,
+    /// A list of other sections to include pages from
+    pub include: Vec<String>,
     /// Any extra parameter present in the front matter
     pub extra: Map<String, Value>,
 }
@@ -114,6 +116,7 @@ impl Default for SectionFrontMatter {
             page_template: None,
             aliases: Vec::new(),
             generate_feed: false,
+            include: Vec::new(),
             extra: Map::new(),
             draft: false,
         }

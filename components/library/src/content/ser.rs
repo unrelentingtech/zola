@@ -268,12 +268,14 @@ pub struct SerializingSection<'a> {
     pages: Vec<SerializingPage<'a>>,
     subsections: Vec<&'a str>,
     translations: Vec<TranslatedContent<'a>>,
+    includers: Vec<&'a str>,
 }
 
 impl<'a> SerializingSection<'a> {
     pub fn from_section(section: &'a Section, library: &'a Library) -> Self {
         let mut pages = Vec::with_capacity(section.pages.len());
         let mut subsections = Vec::with_capacity(section.subsections.len());
+        let mut includers = Vec::with_capacity(section.includers.len());
 
         for k in &section.pages {
             pages.push(library.get_page_by_key(*k).to_serialized_basic(library));
@@ -281,6 +283,10 @@ impl<'a> SerializingSection<'a> {
 
         for k in &section.subsections {
             subsections.push(library.get_section_path_by_key(*k));
+        }
+
+        for k in &section.includers {
+            includers.push(library.get_section_path_by_key(*k));
         }
 
         let ancestors = section
@@ -309,6 +315,7 @@ impl<'a> SerializingSection<'a> {
             pages,
             subsections,
             translations,
+            includers,
         }
     }
 
@@ -317,6 +324,7 @@ impl<'a> SerializingSection<'a> {
         let mut ancestors = vec![];
         let mut translations = vec![];
         let mut subsections = vec![];
+        let mut includers = vec![];
         if let Some(lib) = library {
             ancestors = section
                 .ancestors
@@ -326,6 +334,7 @@ impl<'a> SerializingSection<'a> {
             translations = TranslatedContent::find_all_sections(section, lib);
             subsections =
                 section.subsections.iter().map(|k| lib.get_section_path_by_key(*k)).collect();
+            includers = section.includers.iter().map(|k| lib.get_section_path_by_key(*k)).collect();
         }
 
         SerializingSection {
@@ -347,6 +356,7 @@ impl<'a> SerializingSection<'a> {
             pages: vec![],
             subsections,
             translations,
+            includers,
         }
     }
 }

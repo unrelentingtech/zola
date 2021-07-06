@@ -46,6 +46,8 @@ pub struct Section {
     pub ancestors: Vec<DefaultKey>,
     /// All direct subsections
     pub subsections: Vec<DefaultKey>,
+    /// All sections including pages from this one
+    pub includers: Vec<DefaultKey>,
     /// Toc made from the headings of the markdown file
     pub toc: Vec<Heading>,
     /// How many words in the raw content
