@@ -1,0 +1,33 @@
+name: Build and Upload Zola Fork
+
+on:
+  push:
+    branches:
+    - next
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - uses: actions/cache@v1
+      with:
+        path: |
+          ~/.cargo/registry
+          target
+        key: cargo-${{ hashFiles('Cargo.toml') }}
+    - uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        override: true
+    - uses: actions-rs/cargo@v1
+      with:
+        command: build
+        args: --verbose --release --bin zola
+    - run: upx target/release/zola
+    - uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-region: ${{ secrets.AWS_REGION }}
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    - run: aws s3 cp target/release/zola s3://unrelentingtech/zola/zola-linux --acl public-read --storage-class ONEZONE_IA
